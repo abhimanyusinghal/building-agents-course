@@ -1,0 +1,25 @@
+# Building Agents course — verified with Python 3.13
+# core (days 2-4)
+langgraph>=1.2,<2
+langgraph-checkpoint-sqlite>=3.1
+langchain>=1.3,<2
+langchain-openai>=1.0
+pydantic>=2
+python-dotenv>=1.0
+requests>=2.31
+
+# day 2 extras (tracker + mail)
+msal>=1.30
+
+# day 3 test-pipeline extras (the API under test + the runner)
+fastapi
+uvicorn
+jsonschema
+
+# day 1 lab extra (the MCP tool server)
+mcp
+
+# --- optional: day 4 OpenTelemetry beat (heavier install; skip if not using) ---
+# arize-phoenix>=20
+# arize-phoenix-otel
+# openinference-instrumentation-langchain

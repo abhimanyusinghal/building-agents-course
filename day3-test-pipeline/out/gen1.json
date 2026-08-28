@@ -1,0 +1,305 @@
+{
+  "grounded": true,
+  "seconds": 19.4,
+  "usage": {
+    "input_tokens": 5213,
+    "output_tokens": 1479,
+    "tool_calls": 2
+  },
+  "reasoning": "This suite covers every rule in the x-rules register, focusing on the named boundaries and the consequential state, permission, not-found, and rate-limit behavior, including the required Retry-After header on 429. I left out duplicate happy-path permutations and did not add schema-only assertions beyond what the rules explicitly promise.",
+  "cases": [
+    {
+      "name": "get case accepts readonly role",
+      "method": "GET",
+      "path": "/cases/CASE-1001",
+      "path_template": "/cases/{case_id}",
+      "headers": {
+        "X-Role": "readonly"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [],
+      "category": "happy",
+      "rule_ids": [
+        "R-ROLE-READ",
+        "R-COUNT"
+      ],
+      "traces_to": "\"All three roles may read a case and its notes.\" and \"A case reports note_count, the number of notes currently on it.\""
+    },
+    {
+      "name": "get case rejects missing role header",
+      "method": "GET",
+      "path": "/cases/CASE-1001",
+      "path_template": "/cases/{case_id}",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 400,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-ROLE-REQ"
+      ],
+      "traces_to": "\"Every request carries X-Role. A missing or unknown role is refused.\""
+    },
+    {
+      "name": "list notes returns 404 for unknown case",
+      "method": "GET",
+      "path": "/cases/CASE-9999/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 404,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTFOUND"
+      ],
+      "traces_to": "\"An unknown case id returns 404 on every endpoint.\""
+    },
+    {
+      "name": "add note accepts length 1",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "body": {
+        "text": "x"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 201,
+      "expect_headers": [],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-LEN",
+        "R-ROLE-WRITE"
+      ],
+      "traces_to": "\"A note's text is 1 to 4000 characters inclusive.\" and \"Only the agent and supervisor roles may add a note.\""
+    },
+    {
+      "name": "add note accepts length 4000",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "supervisor"
+      },
+      "body": {
+        "text": ""
+      },
+      "fill": {
+        "field": "text",
+        "length": 4000,
+        "char": "x"
+      },
+      "repeat": 1,
+      "expect_status": 201,
+      "expect_headers": [],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-LEN",
+        "R-ROLE-WRITE"
+      ],
+      "traces_to": "\"4000 is accepted\" and \"Only the agent and supervisor roles may add a note.\""
+    },
+    {
+      "name": "add note rejects length 4001",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "body": {
+        "text": ""
+      },
+      "fill": {
+        "field": "text",
+        "length": 4001,
+        "char": "x"
+      },
+      "repeat": 1,
+      "expect_status": 422,
+      "expect_headers": [],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-LEN"
+      ],
+      "traces_to": "\"4001 is not.\""
+    },
+    {
+      "name": "add note rejects missing text",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "body": {},
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 422,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTE-LEN"
+      ],
+      "traces_to": "\"The note text is longer than 4000 characters, or is missing or empty.\""
+    },
+    {
+      "name": "add note rejects readonly role",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "readonly"
+      },
+      "body": {
+        "text": "note from readonly"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 403,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-ROLE-WRITE"
+      ],
+      "traces_to": "\"The readonly role may not add notes.\""
+    },
+    {
+      "name": "add note rejects closed case",
+      "method": "POST",
+      "path": "/cases/CASE-1009/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "body": {
+        "text": "cannot write to closed"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 409,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTE-CLOSED"
+      ],
+      "traces_to": "\"A closed case is read-only and accepts no new notes.\""
+    },
+    {
+      "name": "list notes accepts readonly role",
+      "method": "GET",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "X-Role": "readonly"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [],
+      "category": "happy",
+      "rule_ids": [
+        "R-ROLE-READ"
+      ],
+      "traces_to": "\"All three roles may read a case and its notes.\""
+    },
+    {
+      "name": "list orders returns recent orders to readonly role",
+      "method": "GET",
+      "path": "/cases/CASE-1001/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Role": "readonly",
+        "X-Client-Id": "client-a"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [],
+      "category": "happy",
+      "rule_ids": [
+        "R-ORDERS",
+        "R-ROLE-READ",
+        "R-MONEY"
+      ],
+      "traces_to": "\"The case screen shows the customer's recent orders.\", \"All three roles may read a case and its notes.\", and \"Money is an integer of pence. Never a float.\""
+    },
+    {
+      "name": "orders rejects unknown case",
+      "method": "GET",
+      "path": "/cases/CASE-9999/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Role": "agent",
+        "X-Client-Id": "client-b"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 404,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTFOUND"
+      ],
+      "traces_to": "\"An unknown case id returns 404 on every endpoint.\""
+    },
+    {
+      "name": "orders rate limit trips on request 101",
+      "method": "GET",
+      "path": "/cases/CASE-1001/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Role": "agent",
+        "X-Client-Id": "client-rate"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 101,
+      "expect_status": 429,
+      "expect_headers": [
+        "Retry-After"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-RATE",
+        "R-RATE-HDR"
+      ],
+      "traces_to": "\"Over 100 requests per minute from one client returns 429.\" and \"Every 429 carries a Retry-After header.\""
+    },
+    {
+      "name": "orders rejects missing role header",
+      "method": "GET",
+      "path": "/cases/CASE-1001/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Client-Id": "client-c"
+      },
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 400,
+      "expect_headers": [],
+      "category": "negative",
+      "rule_ids": [
+        "R-ROLE-REQ"
+      ],
+      "traces_to": "\"Every request carries X-Role. A missing or unknown role is refused.\""
+    }
+  ]
+}

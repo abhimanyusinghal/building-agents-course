@@ -1,0 +1,85 @@
+ts,subject,step,seconds,input_tokens,output_tokens,tool_calls,cost_usd,note
+18:01:17,suite,generate,21.10,5213,1615,2,0.0292,"14 cases, grounded"
+18:05:14,suite,generate,17.20,596,1561,1,0.0171,"13 cases, UNGROUNDED"
+18:16:42,get case accepts readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,get case rejects missing role header,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,list notes returns 404 for unknown case,run_case,0.01,0,0,0,0.0000,pass
+18:16:42,add note accepts length 1,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,add note accepts length 4000,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,add note rejects length 4001,run_case,0.00,0,0,0,0.0000,fail
+18:16:42,add note rejects missing text,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,add note rejects readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,add note rejects closed case,run_case,0.00,0,0,0,0.0000,pass
+18:16:42,list notes accepts readonly role,run_case,0.00,0,0,0,0.0000,fail
+18:16:42,list orders returns recent orders to readonly role,run_case,0.01,0,0,0,0.0000,pass
+18:16:42,orders rejects unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:16:43,orders rate limit trips on request 101,run_case,0.91,0,0,0,0.0000,fail
+18:16:43,orders rejects missing role header,run_case,0.03,0,0,0,0.0000,pass
+18:16:44,"orders: 101 calls in a minute is rate limited, with Retry-Af",run_case,0.92,0,0,0,0.0000,fail
+18:16:47,orders: a second customer's orders are readable,run_case,3.03,0,0,0,0.0000,error
+18:16:47,notes: adding a note to a closed case returns 400,run_case,0.02,0,0,0,0.0000,fail
+18:16:47,case: an unknown case id is not found,run_case,0.00,0,0,0,0.0000,pass
+18:16:47,case: a fresh case reports note_count 0,run_case,0.00,0,0,0,0.0000,fail
+18:21:12,get case accepts readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,get case rejects missing role header,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,list notes returns 404 for unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,add note accepts length 1,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,add note accepts length 4000,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,add note rejects length 4001,run_case,0.00,0,0,0,0.0000,fail
+18:21:12,add note rejects missing text,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,add note rejects readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,add note rejects closed case,run_case,0.00,0,0,0,0.0000,pass
+18:21:12,list notes accepts readonly role,run_case,0.01,0,0,0,0.0000,pass
+18:21:12,list orders returns recent orders to readonly role,run_case,0.01,0,0,0,0.0000,pass
+18:21:12,orders rejects unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:21:13,orders rate limit trips on request 101,run_case,0.83,0,0,0,0.0000,fail
+18:21:13,orders rejects missing role header,run_case,0.00,0,0,0,0.0000,pass
+18:21:14,"orders: 101 calls in a minute is rate limited, with Retry-Af",run_case,0.58,0,0,0,0.0000,fail
+18:21:17,orders: a second customer's orders are readable,run_case,3.02,0,0,0,0.0000,error
+18:21:17,notes: adding a note to a closed case returns 400,run_case,0.01,0,0,0,0.0000,fail
+18:21:17,case: an unknown case id is not found,run_case,0.01,0,0,0,0.0000,pass
+18:21:17,case: a fresh case reports note_count 0,run_case,0.00,0,0,0,0.0000,pass
+18:26:50,failures,triage,11.85,6689,711,2,0.0238,5 verdicts
+18:26:57,get case accepts readonly role,run_case,0.01,0,0,0,0.0000,pass
+18:26:57,get case rejects missing role header,run_case,0.01,0,0,0,0.0000,pass
+18:26:57,list notes returns 404 for unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:26:57,add note accepts length 1,run_case,0.00,0,0,0,0.0000,pass
+18:26:57,add note accepts length 4000,run_case,0.02,0,0,0,0.0000,pass
+18:26:57,add note rejects length 4001,run_case,0.00,0,0,0,0.0000,fail
+18:26:57,add note rejects missing text,run_case,0.00,0,0,0,0.0000,pass
+18:26:57,add note rejects readonly role,run_case,0.02,0,0,0,0.0000,pass
+18:26:57,add note rejects closed case,run_case,0.01,0,0,0,0.0000,pass
+18:26:57,list notes accepts readonly role,run_case,0.01,0,0,0,0.0000,fail
+18:26:57,list orders returns recent orders to readonly role,run_case,0.01,0,0,0,0.0000,pass
+18:26:57,orders rejects unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:26:58,orders rate limit trips on request 101,run_case,0.83,0,0,0,0.0000,fail
+18:26:58,orders rejects missing role header,run_case,0.00,0,0,0,0.0000,pass
+18:26:59,"orders: 101 calls in a minute is rate limited, with Retry-Af",run_case,0.87,0,0,0,0.0000,fail
+18:27:02,orders: a second customer's orders are readable,run_case,3.00,0,0,0,0.0000,error
+18:27:02,notes: adding a note to a closed case returns 400,run_case,0.02,0,0,0,0.0000,fail
+18:27:02,case: an unknown case id is not found,run_case,0.02,0,0,0,0.0000,pass
+18:27:02,case: a fresh case reports note_count 0,run_case,0.00,0,0,0,0.0000,fail
+18:27:26,failures,triage,15.16,7897,907,2,0.0288,7 verdicts
+18:41:48,failures,triage,15.10,7897,931,2,0.0291,7 verdicts
+18:44:10,suite,generate,20.35,5213,1505,2,0.0281,"14 cases, grounded"
+18:44:15,get case accepts readonly role,run_case,0.02,0,0,0,0.0000,pass
+18:44:15,get case rejects missing role header,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,list notes returns 404 for unknown case,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,add note accepts length 1,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,add note accepts length 4000,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,add note rejects length 4001,run_case,0.00,0,0,0,0.0000,fail
+18:44:15,add note rejects missing text,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,add note rejects readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,add note rejects closed case,run_case,0.02,0,0,0,0.0000,pass
+18:44:15,list notes accepts readonly role,run_case,0.00,0,0,0,0.0000,fail
+18:44:15,list orders returns recent orders to readonly role,run_case,0.00,0,0,0,0.0000,pass
+18:44:15,orders rejects unknown case,run_case,0.02,0,0,0,0.0000,pass
+18:44:15,orders rate limit trips on request 101,run_case,1.04,0,0,0,0.0000,fail
+18:44:15,orders rejects missing role header,run_case,0.02,0,0,0,0.0000,pass
+18:44:15,"orders: 101 calls in a minute is rate limited, with Retry-Af",run_case,1.11,0,0,0,0.0000,fail
+18:44:15,orders: a second customer's orders are readable,run_case,3.01,0,0,0,0.0000,error
+18:44:15,notes: adding a note to a closed case returns 400,run_case,0.00,0,0,0,0.0000,fail
+18:44:16,case: an unknown case id is not found,run_case,0.00,0,0,0,0.0000,pass
+18:44:16,case: a fresh case reports note_count 0,run_case,0.00,0,0,0,0.0000,fail
+18:44:30,failures,triage,13.78,7897,855,2,0.0283,7 verdicts
+18:44:30,verdicts,audit,0.00,0,0,0,0.0000,1 flagged

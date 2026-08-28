@@ -1,0 +1,302 @@
+{
+  "grounded": false,
+  "seconds": 15.6,
+  "usage": {
+    "input_tokens": 596,
+    "output_tokens": 1534,
+    "tool_calls": 1
+  },
+  "reasoning": "This suite covers the consequential contract rules for reading cases, listing and creating notes, and viewing recent orders, with emphasis on note-creation boundaries, existence checks, media type, and rate limiting. It deliberately leaves out auth permutations, response body schema field-by-field assertions, pagination/sorting details, and concurrency/idempotency because those rules were not provided and would require contract specifics to test precisely.",
+  "cases": [
+    {
+      "name": "Get case by id returns case",
+      "method": "GET",
+      "path": "/cases/CASE-1001",
+      "path_template": "/cases/{case_id}",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "happy",
+      "rule_ids": [
+        "R-CASE-GET-200"
+      ],
+      "traces_to": "\"GET /cases/{case_id} returns 200 with the case resource when the case exists and the caller is authorized.\""
+    },
+    {
+      "name": "Get missing case returns 404",
+      "method": "GET",
+      "path": "/cases/CASE-9999",
+      "path_template": "/cases/{case_id}",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 404,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "negative",
+      "rule_ids": [
+        "R-CASE-GET-404"
+      ],
+      "traces_to": "\"If case_id does not identify an existing case, GET /cases/{case_id} returns 404.\""
+    },
+    {
+      "name": "List notes for case returns notes array",
+      "method": "GET",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "happy",
+      "rule_ids": [
+        "R-NOTES-LIST-200"
+      ],
+      "traces_to": "\"GET /cases/{case_id}/notes returns 200 and a JSON array of notes for the case.\""
+    },
+    {
+      "name": "Add note succeeds at minimum length",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "x"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 201,
+      "expect_headers": [
+        "Content-Type",
+        "Location"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-CREATE-201",
+        "R-NOTE-LEN-MIN"
+      ],
+      "traces_to": "\"POST /cases/{case_id}/notes creates a note with 201 when text length is between 1 and 4000 characters inclusive.\""
+    },
+    {
+      "name": "Add note succeeds at maximum length",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": ""
+      },
+      "fill": {
+        "field": "text",
+        "length": 4000,
+        "char": "x"
+      },
+      "repeat": 1,
+      "expect_status": 201,
+      "expect_headers": [
+        "Content-Type",
+        "Location"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-CREATE-201",
+        "R-NOTE-LEN-MAX"
+      ],
+      "traces_to": "\"POST /cases/{case_id}/notes creates a note with 201 when text length is between 1 and 4000 characters inclusive.\""
+    },
+    {
+      "name": "Add note rejects empty text",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": ""
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 400,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-LEN-MIN"
+      ],
+      "traces_to": "\"text must be at least 1 character; shorter input is rejected with 400.\""
+    },
+    {
+      "name": "Add note rejects text over max",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": ""
+      },
+      "fill": {
+        "field": "text",
+        "length": 4001,
+        "char": "x"
+      },
+      "repeat": 1,
+      "expect_status": 400,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-NOTE-LEN-MAX"
+      ],
+      "traces_to": "\"text must be no more than 4000 characters; longer input is rejected with 400.\""
+    },
+    {
+      "name": "Add note rejects missing text field",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 400,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTE-TEXT-REQUIRED"
+      ],
+      "traces_to": "\"POST /cases/{case_id}/notes requires body.text; if absent, the service returns 400.\""
+    },
+    {
+      "name": "Add note to missing case returns 404",
+      "method": "POST",
+      "path": "/cases/CASE-9999/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Followed up with customer"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 404,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "negative",
+      "rule_ids": [
+        "R-NOTE-CASE-404"
+      ],
+      "traces_to": "\"If case_id does not identify an existing case, POST /cases/{case_id}/notes returns 404 and does not create a note.\""
+    },
+    {
+      "name": "Recent orders for case customer returns list",
+      "method": "GET",
+      "path": "/cases/CASE-1001/orders/recent",
+      "path_template": "/cases/{case_id}/orders/recent",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 200,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "happy",
+      "rule_ids": [
+        "R-ORDERS-RECENT-200"
+      ],
+      "traces_to": "\"GET /cases/{case_id}/orders/recent returns 200 and the customer's recent orders for the case.\""
+    },
+    {
+      "name": "Recent orders on missing case returns 404",
+      "method": "GET",
+      "path": "/cases/CASE-9999/orders/recent",
+      "path_template": "/cases/{case_id}/orders/recent",
+      "headers": {},
+      "body": null,
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 404,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "negative",
+      "rule_ids": [
+        "R-ORDERS-RECENT-404"
+      ],
+      "traces_to": "\"If case_id does not identify an existing case, GET /cases/{case_id}/orders/recent returns 404.\""
+    },
+    {
+      "name": "Unsupported media type on note create",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "text/plain"
+      },
+      "body": {
+        "text": "plain"
+      },
+      "fill": null,
+      "repeat": 1,
+      "expect_status": 415,
+      "expect_headers": [
+        "Content-Type"
+      ],
+      "category": "contract",
+      "rule_ids": [
+        "R-CONTENT-TYPE-JSON"
+      ],
+      "traces_to": "\"POST endpoints that accept a body require Content-Type: application/json; other media types are rejected with 415.\""
+    },
+    {
+      "name": "Note create rate limit enforced",
+      "method": "POST",
+      "path": "/cases/CASE-1001/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Customer requested status update"
+      },
+      "fill": null,
+      "repeat": 21,
+      "expect_status": 429,
+      "expect_headers": [
+        "Content-Type",
+        "Retry-After"
+      ],
+      "category": "boundary",
+      "rule_ids": [
+        "R-RATE-NOTE-CREATE"
+      ],
+      "traces_to": "\"POST /cases/{case_id}/notes is limited to 20 requests per minute per agent; excess requests return 429 with Retry-After.\""
+    }
+  ]
+}

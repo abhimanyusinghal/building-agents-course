@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+jsonschema
+python-dotenv
+pydantic
+langgraph
+langchain
+langchain-openai

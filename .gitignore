@@ -1,0 +1,19 @@
+# secrets and local state — never commit these
+.env
+.msal_cache.json
+*.sqlite
+*.db
+checkpoints.db*
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# tool state
+.pytest_cache/
+.claude/
+.phoenix/
+.vscode/
+!day1-agent-fundamentals/story-check/.vscode/

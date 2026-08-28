@@ -1,0 +1,98 @@
+{
+  "usage": {
+    "input_tokens": 7897,
+    "output_tokens": 855,
+    "tool_calls": 2
+  },
+  "summary": "API defects: oversized notes are being accepted and surfaced, and 429 responses are missing Retry-After; tests also need updating for closed-case note status and shared fixture note_count, while one orders timeout looks environmental.",
+  "verdicts": [
+    {
+      "case_name": "add note rejects length 4001",
+      "classification": "contract_break",
+      "confidence": "high",
+      "evidence": [
+        "Expected status \"422\"; observed status \"201\".",
+        "Observed response body text was \"\u2026 [4001 characters in total]\".",
+        "Contract clause: \"The note text is longer than 4000 characters, or is missing or empty\" returns \"422\" and \"4000 is accepted; 4001 is not (STORY-4488).\""
+      ],
+      "duplicate_of": "",
+      "owner": "api-team",
+      "action": "Fix note creation to reject 4001-character text with 422."
+    },
+    {
+      "case_name": "list notes accepts readonly role",
+      "classification": "contract_break",
+      "confidence": "high",
+      "evidence": [
+        "Observed status was \"200\" with a note at index 0 whose text was \"\u2026 [4001 characters in total]\".",
+        "Contract clause for Note.text: \"maxLength: 4000\".",
+        "Contract clause: Note schema property \"text\" has \"type: string\" and \"maxLength\": 4000."
+      ],
+      "duplicate_of": "",
+      "owner": "api-team",
+      "action": "Prevent oversized note text from being returned in notes listings by enforcing or repairing note length constraints."
+    },
+    {
+      "case_name": "orders rate limit trips on request 101",
+      "classification": "contract_break",
+      "confidence": "high",
+      "evidence": [
+        "Expected header \"Retry-After\"; observed headers were only \"content-type: application/json\".",
+        "Observed status was \"429\".",
+        "Contract clause: \"Every 429 carries a Retry-After header.\" and 429 response header \"Retry-After\" is \"required: true\"."
+      ],
+      "duplicate_of": "orders: 101 calls in a minute is rate limited, with Retry-After",
+      "owner": "api-team",
+      "action": "Return the required Retry-After header on 429 rate-limit responses."
+    },
+    {
+      "case_name": "orders: 101 calls in a minute is rate limited, with Retry-After",
+      "classification": "contract_break",
+      "confidence": "high",
+      "evidence": [
+        "Expected header \"Retry-After\"; observed headers were only \"content-type: application/json\".",
+        "Observed status was \"429\".",
+        "Contract clause: \"Every 429 carries a Retry-After header.\" and 429 response header \"Retry-After\" is \"required: true\"."
+      ],
+      "duplicate_of": "",
+      "owner": "api-team",
+      "action": "Return the required Retry-After header on 429 rate-limit responses."
+    },
+    {
+      "case_name": "orders: a second customer's orders are readable",
+      "classification": "environment",
+      "confidence": "medium",
+      "evidence": [
+        "Observed status was \"null\" and runner reason was \"the request never completed: ReadTimeout\".",
+        "Contract clause checked: GET /cases/{case_id}/orders defines application responses \"200\", \"400\", \"429\", and \"404\"; no timeout behavior is specified."
+      ],
+      "duplicate_of": "",
+      "owner": "platform",
+      "action": "Investigate the timeout in the test environment and rerun this case."
+    },
+    {
+      "case_name": "notes: adding a note to a closed case returns 400",
+      "classification": "stale_test",
+      "confidence": "high",
+      "evidence": [
+        "Expected status \"400\"; observed status \"409\".",
+        "Contract clause: POST /cases/{case_id}/notes response \"409\": \"The case is closed. A closed case is read-only and accepts no new notes (STORY-4520).\""
+      ],
+      "duplicate_of": "",
+      "owner": "qa",
+      "action": "Update the test to expect 409 for adding a note to a closed case."
+    },
+    {
+      "case_name": "case: a fresh case reports note_count 0",
+      "classification": "stale_test",
+      "confidence": "high",
+      "evidence": [
+        "Expected \"note_count=0\"; observed body had \"note_count\": 3.",
+        "Contract clause: \"A case reports note_count, the number of notes currently on it.\""
+      ],
+      "duplicate_of": "",
+      "owner": "qa",
+      "action": "Update the test setup or expectation so CASE-1001 note_count reflects the current number of notes, not a fresh-case assumption."
+    }
+  ]
+}

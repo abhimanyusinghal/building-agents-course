@@ -1,0 +1,72 @@
+# ============================================================================
+#  THE FLEET INVENTORY — what has to exist BEFORE agents run beyond the team
+# ============================================================================
+#
+#  One row per agent. Three fields are mandatory, and the linter
+#  (inventory.py) fails the fleet if any row is missing one:
+#
+#    owner      a person who answers for this agent — never a team name
+#    identity   credentials that belong to THE AGENT, not to a person.
+#               Revoking this row is the kill switch; no human loses access.
+#    cost_cap   the daily spend at which someone gets paged
+#
+# ============================================================================
+
+fleet:
+
+  # ---- day 2 · the story pipeline -----------------------------------------
+  - agent: story-judge
+    day: 2
+    purpose: judge stories against the Definition of Ready, draft the comment
+    owner: abhimanyu
+    identity: "github-pat: fine-grained, Issues RW, repo story-pipeline-demo only (expires 2026-09-25)"
+    model: gpt-5.4
+    prompt_version: v3
+    cost_cap_usd_per_day: 2.00
+
+  # ---- day 3 · the testing agents -----------------------------------------
+  - agent: test-designer
+    day: 3
+    purpose: write the test suite from the contract
+    owner: abhimanyu
+    identity: "azure-openai key, fixture-scoped .env"
+    model: gpt-5.4
+    prompt_version: v1
+    cost_cap_usd_per_day: 1.00
+
+  - agent: triage
+    day: 3
+    purpose: turn a red run into verdicts with evidence
+    owner: abhimanyu
+    identity: "azure-openai key, fixture-scoped .env"
+    model: gpt-5.4
+    prompt_version: v1
+    cost_cap_usd_per_day: 1.00
+
+  - agent: knowledge-ask
+    day: 3
+    purpose: answer engineering questions, citing chunk ids
+    owner: abhimanyu
+    identity: "azure-openai key, rag-demo-scoped .env"
+    model: gpt-5.4
+    prompt_version: v1
+    cost_cap_usd_per_day: 1.00
+
+  # ---- day 4 · the pattern demos (all on the fast model) ------------------
+  - agent: pattern-demos
+    day: 4
+    purpose: the eleven coordination-pattern demos, P0-P10
+    owner: abhimanyu
+    identity: "azure-openai key, day4-fixture-scoped .env"
+    model: gpt-5.4-nano
+    prompt_version: v1
+    cost_cap_usd_per_day: 0.50
+
+  - agent: note-summarizer
+    day: 4
+    purpose: the run-record drift demo (C2)
+    owner: abhimanyu
+    identity: "azure-openai key, day4-fixture-scoped .env"
+    model: gpt-5.4-nano
+    prompt_version: v3
+    cost_cap_usd_per_day: 0.25

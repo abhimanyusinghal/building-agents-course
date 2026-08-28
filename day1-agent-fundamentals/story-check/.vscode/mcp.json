@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "workitem": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["${workspaceFolder}/tools/workitem_server.py"]
+    }
+  }
+}

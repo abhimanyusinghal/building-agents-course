@@ -1,0 +1,564 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Case Notes API",
+    "version": "2.5.0",
+    "description": "The API behind the case screen.\n\nTHIS FILE IS THE CONTRACT. It is written by hand and reviewed by people. The server is built to satisfy it. When the two disagree, the server is wrong.\n\nx-rules is the register of rules the business argued about, each with an id. Every test case must name the rule id it proves, which is what lets a script report the rules that have no case at all - a coverage question you can answer without reading a single test."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8742",
+      "description": "local demo instance"
+    }
+  ],
+  "paths": {
+    "/cases/{case_id}": {
+      "get": {
+        "operationId": "getCase",
+        "summary": "Fetch one case.",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Case identifier, e.g. CASE-1001."
+          },
+          {
+            "name": "X-Role",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agent",
+                "supervisor",
+                "readonly"
+              ]
+            },
+            "description": "Who is calling. Permissions differ by role (R-ROLE-WRITE, R-ROLE-READ, R-ROLE-REQ)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The case.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Case"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No case with that identifier.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "X-Role is missing, or is not one of agent, supervisor, readonly (R-ROLE-REQ).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-traces-to": [
+          "R-COUNT",
+          "R-ROLE-READ",
+          "R-NOTFOUND"
+        ]
+      }
+    },
+    "/cases/{case_id}/notes": {
+      "post": {
+        "operationId": "addNote",
+        "summary": "Add a note to a case.",
+        "x-traces-to": [
+          "R-NOTE-LEN",
+          "R-NOTE-CLOSED",
+          "R-ROLE-WRITE",
+          "R-ROLE-REQ"
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Role",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agent",
+                "supervisor",
+                "readonly"
+              ]
+            },
+            "description": "Who is calling. Permissions differ by role (R-ROLE-WRITE, R-ROLE-READ, R-ROLE-REQ)."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewNote"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The case is closed. A closed case is read-only and accepts no new notes (STORY-4520).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The note text is longer than 4000 characters, or is missing or empty (STORY-4488).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No case with that identifier.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "X-Role is missing, or is not one of agent, supervisor, readonly (R-ROLE-REQ).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The readonly role may not add notes (R-ROLE-WRITE).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listNotes",
+        "summary": "List the notes on a case, newest first.",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Role",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agent",
+                "supervisor",
+                "readonly"
+              ]
+            },
+            "description": "Who is calling. Permissions differ by role (R-ROLE-WRITE, R-ROLE-READ, R-ROLE-REQ)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Note"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No case with that identifier.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "X-Role is missing, or is not one of agent, supervisor, readonly (R-ROLE-REQ).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-traces-to": [
+          "R-ROLE-READ",
+          "R-NOTFOUND"
+        ]
+      }
+    },
+    "/cases/{case_id}/orders": {
+      "get": {
+        "operationId": "listRecentOrders",
+        "summary": "Recent orders for the customer on this case.",
+        "x-traces-to": [
+          "R-ORDERS",
+          "R-RATE",
+          "R-RATE-HDR",
+          "R-MONEY",
+          "R-ROLE-READ"
+        ],
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifies the calling integration. Rate limits are counted per client."
+          },
+          {
+            "name": "X-Role",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "agent",
+                "supervisor",
+                "readonly"
+              ]
+            },
+            "description": "Who is calling. Permissions differ by role (R-ROLE-WRITE, R-ROLE-READ, R-ROLE-REQ)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The orders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "X-Role is missing, or is not one of agent, supervisor, readonly (R-ROLE-REQ).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 100 requests in one minute from a single client (STORY-4501). The response MUST carry a Retry-After header giving the number of seconds to wait.",
+            "headers": {
+              "Retry-After": {
+                "required": true,
+                "description": "Seconds the client must wait before retrying. Required on every 429.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No case with that identifier.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Case": {
+        "type": "object",
+        "required": [
+          "case_id",
+          "customer",
+          "status",
+          "note_count"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "description": "A closed case is read-only."
+          },
+          "note_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "NewNote": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "The note. Must be between 1 and 4000 characters inclusive. 4000 is accepted; 4001 is not (STORY-4488)."
+          }
+        }
+      },
+      "Note": {
+        "type": "object",
+        "required": [
+          "note_id",
+          "case_id",
+          "text",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "note_id": {
+            "type": "string"
+          },
+          "case_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": [
+          "order_id",
+          "placed_at",
+          "total_pence",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "placed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "total_pence": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Money is an integer of pence. Never a float."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "placed",
+              "shipped",
+              "delivered",
+              "returned"
+            ]
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "A stable machine-readable code."
+          },
+          "message": {
+            "type": "string",
+            "description": "A sentence for a human being."
+          }
+        }
+      }
+    }
+  },
+  "x-fixtures": {
+    "description": "Cases that exist on the demo instance. Test data should use these.",
+    "cases": [
+      {
+        "case_id": "CASE-1001",
+        "customer": "R. Okafor",
+        "status": "open"
+      },
+      {
+        "case_id": "CASE-1002",
+        "customer": "M. Lindqvist",
+        "status": "open"
+      },
+      {
+        "case_id": "CASE-1009",
+        "customer": "T. Bhatt",
+        "status": "closed"
+      }
+    ],
+    "unknown_case_id": "CASE-9999"
+  },
+  "x-rules": [
+    {
+      "id": "R-NOTE-LEN",
+      "story": "STORY-4488",
+      "text": "A note's text is 1 to 4000 characters inclusive. 4000 is accepted; 4001 is not."
+    },
+    {
+      "id": "R-NOTE-CLOSED",
+      "story": "STORY-4520",
+      "text": "A closed case is read-only and accepts no new notes."
+    },
+    {
+      "id": "R-ROLE-WRITE",
+      "story": "STORY-4533",
+      "text": "Only the agent and supervisor roles may add a note. The readonly role may not."
+    },
+    {
+      "id": "R-ROLE-READ",
+      "story": "STORY-4533",
+      "text": "All three roles may read a case and its notes."
+    },
+    {
+      "id": "R-ROLE-REQ",
+      "story": "STORY-4533",
+      "text": "Every request carries X-Role. A missing or unknown role is refused."
+    },
+    {
+      "id": "R-RATE",
+      "story": "STORY-4501",
+      "text": "Over 100 requests per minute from one client returns 429."
+    },
+    {
+      "id": "R-RATE-HDR",
+      "story": "STORY-4501",
+      "text": "Every 429 carries a Retry-After header."
+    },
+    {
+      "id": "R-ORDERS",
+      "story": "STORY-4471",
+      "text": "The case screen shows the customer's recent orders."
+    },
+    {
+      "id": "R-COUNT",
+      "story": "STORY-4471",
+      "text": "A case reports note_count, the number of notes currently on it."
+    },
+    {
+      "id": "R-NOTFOUND",
+      "story": "-",
+      "text": "An unknown case id returns 404 on every endpoint."
+    },
+    {
+      "id": "R-MONEY",
+      "story": "-",
+      "text": "Money is an integer of pence. Never a float."
+    }
+  ]
+}

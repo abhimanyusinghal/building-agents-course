@@ -1,0 +1,107 @@
+{
+  "_comment": [
+    "The suite the team already had, checked in and running long before anybody",
+    "pointed an agent at this API. It is here because an agent that writes tests",
+    "does not replace the tests you have - it adds to them.",
+    "",
+    "Two things worth knowing about a file like this. It is where a team's",
+    "hard-won cases live: the load-shaped one nobody wants to write twice, the",
+    "one added the morning after an incident. And it is where stale cases hide -",
+    "written against a contract that has since moved on, still green because",
+    "nothing has forced them to be re-read."
+  ],
+  "cases": [
+    {
+      "name": "orders: 101 calls in a minute is rate limited, with Retry-After",
+      "method": "GET",
+      "path": "/cases/CASE-1001/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Client-Id": "billing-sync",
+        "X-Role": "agent"
+      },
+      "repeat": 101,
+      "expect_status": 429,
+      "expect_headers": [
+        "Retry-After"
+      ],
+      "category": "boundary",
+      "traces_to": "STORY-4501: more than 100 requests per minute from one client receives 429, and the 429 must carry Retry-After",
+      "_why_here": "Load-shaped, slow to write, and nobody wants to write it twice. Exactly the kind of case that lives in a regression file rather than being regenerated.",
+      "rule_ids": [
+        "R-RATE",
+        "R-RATE-HDR"
+      ]
+    },
+    {
+      "name": "orders: a second customer's orders are readable",
+      "method": "GET",
+      "path": "/cases/CASE-1002/orders",
+      "path_template": "/cases/{case_id}/orders",
+      "headers": {
+        "X-Client-Id": "case-screen",
+        "X-Role": "agent"
+      },
+      "expect_status": 200,
+      "category": "happy",
+      "traces_to": "STORY-4471: the case screen shows recent orders",
+      "_why_here": "Added after an incident where one customer's orders were readable and another's were not.",
+      "rule_ids": [
+        "R-ORDERS"
+      ]
+    },
+    {
+      "name": "notes: adding a note to a closed case returns 400",
+      "method": "POST",
+      "path": "/cases/CASE-1009/notes",
+      "path_template": "/cases/{case_id}/notes",
+      "body": {
+        "text": "Customer called back about the refund."
+      },
+      "expect_status": 400,
+      "category": "negative",
+      "traces_to": "STORY-4520: a closed case is read-only",
+      "_why_here": "STALE. Written when the API returned 400 for this. The contract was later corrected to 409, because the request is well-formed and it is the case's state that refuses it - and nobody came back to update this case. The test is wrong; the API is right.",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "rule_ids": [
+        "R-NOTE-CLOSED"
+      ]
+    },
+    {
+      "name": "case: an unknown case id is not found",
+      "method": "GET",
+      "path": "/cases/CASE-9999",
+      "path_template": "/cases/{case_id}",
+      "expect_status": 404,
+      "category": "negative",
+      "traces_to": "GET /cases/{case_id}: 404 when no case has that identifier",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "rule_ids": [
+        "R-NOTFOUND"
+      ]
+    },
+    {
+      "name": "case: a fresh case reports note_count 0",
+      "method": "GET",
+      "path": "/cases/CASE-1001",
+      "path_template": "/cases/{case_id}",
+      "headers": {
+        "X-Role": "agent"
+      },
+      "expect_status": 200,
+      "expect_body": {
+        "note_count": 0
+      },
+      "category": "happy",
+      "rule_ids": [
+        "R-COUNT"
+      ],
+      "traces_to": "R-COUNT: a case reports note_count, the number of notes currently on it",
+      "_why_here": "Passes on its own. Fails after any case that adds a note to CASE-1001, because the two share state. Written by somebody who ran it alone."
+    }
+  ]
+}
