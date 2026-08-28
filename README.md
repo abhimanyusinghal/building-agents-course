@@ -2,7 +2,8 @@
 
 The complete, runnable demo set from the four-day **Building Agents** training:
 every agent, graph, pattern and governance tool shown in the sessions, in its
-final state. Each day is a self-contained folder with its own README.
+final state. Each day is a self-contained folder with its own README, and the
+session slides are in [`slides/`](slides/) as PDFs.
 
 | Day | Folder | What you build / run |
 |-----|--------|----------------------|
